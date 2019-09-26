@@ -272,7 +272,8 @@ class Atl_cash_register(Cash_register_interface):
     
    
     @cr_coro
-    def register_operation(self, email, products, payments, total, receiptType, operator=None, is_electronary=True, r1192=None):
+    def register_operation(self, email, products, payments, total, receiptType, operator=None, 
+        is_electronary=True, r1192=None, test_mode=False):
         #регистрация фискальной операции
         allowed_receiptTypes={1:'LIBFPTR_RT_SELL', 2:'LIBFPTR_RT_SELL_RETURN', 7:'LIBFPTR_RT_SELL_CORRECTION',
                               8:'LIBFPTR_RT_SELL_RETURN_CORRECTION', 4:'LIBFPTR_RT_BUY', 5:'LIBFPTR_RT_BUY_RETURN',
@@ -326,7 +327,11 @@ class Atl_cash_register(Cash_register_interface):
              self.driver.cancelReceipt()
              raise CROperationError(self.name, 'Ошибка регистрации общей суммы чека: ' +self._errorDescription())
               
-        #закрываем чек
+
+        if test_mode:
+             self.driver.cancelReceipt()
+             return
+        #закрываем чек        
         if self.driver.closeReceipt()<0:
              self.driver.cancelReceipt()
              raise CROperationError(self.name, 'Ошибка закрытия чека: ' +self._errorDescription())
@@ -349,5 +354,4 @@ class Atl_cash_register(Cash_register_interface):
 
     @cr_coro
     def close(self):
-    ifptr
         self.driver.close()
