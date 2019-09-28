@@ -243,7 +243,7 @@ class Atl_cash_register(Cash_register_interface):
     def _cancel_receipt(self):
         self.driver.cancelReceipt()  
 
-    @cr_coro:
+    @cr_coro
     def get_not_sent_docs(self):
         self._setParam('LIBFPTR_PARAM_FN_DATA_TYPE', 'LIBFPTR_FNDT_OFD_EXCHANGE_STATUS')
         self._fnQueryData()
