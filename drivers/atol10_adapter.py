@@ -1,4 +1,4 @@
-import libfptr101
+from drivers import libfptr101
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
@@ -25,8 +25,8 @@ class Logger():
         
 def cr_coro(method): #Декоратор для асинхронного использования методов работы с кассой
     async def wrapped(self, *args, **kwargs):
-        with await self.lock:
-            result=await self.loop.run_in_executor(None, method, *args, **kwargs)
+        async with self.lock:
+            result=await self.loop.run_in_executor(None, method, self, *args, **kwargs)
         return result
     return wrapped  
 
@@ -68,7 +68,7 @@ class Atl_cash_register(Cash_register_interface):
         
                 
         self.lock=asyncio.Lock()
-        DTO_LIB='libfptr10.so'
+        DTO_LIB='drivers/libfptr10.so'
         self.driver=libfptr101.IFptr(DTO_LIB)
         self._setSingleSetting('UserPassword', cr_passwd)
         self._setSingleSetting('LIBFPTR_SETTING_MODEL', cr_model)
@@ -83,17 +83,17 @@ class Atl_cash_register(Cash_register_interface):
         self.name='Atl_cash_register'
         self.shift_live_time=shift_duration
         self.shift_closing_delay=shift_closing_delay #задержка при закрытии смены по таймеру
-        if not self.loop:
+        if not loop:
             loop=asyncio.get_event_loop() 
         self.loop=loop # 
         self.auto_shift=auto_shift
         if auto_shift:
-            self.shift_closing_task=loop.create_task(shift_closing_timer())
+            self.shift_closing_task=loop.create_task(self.shift_closing_timer())
         
         
     async def shift_closing_timer(self, seconds_to_close=None):
         if seconds_to_close is None:
-            cr_state = await get_shift_state   
+            cr_state = await self.get_shift_state()   
             if cr_state['value']>=1:
                 seconds_to_close=cr_state['now_dateTime']-cr_state['start_dateTime'].timestamp()-self.shift_live_time
                 seconds_to_close=seconds_to_close-self.shift_closing_delay
@@ -101,7 +101,7 @@ class Atl_cash_register(Cash_register_interface):
                 await asyncio.sleep(0)
                 return
         await asyncio.sleep(seconds_to_close)
-        await close_shift()
+        await self.close_shift()
                       
 
     def _shift_closing_control(self, call_async=False):
@@ -137,6 +137,9 @@ class Atl_cash_register(Cash_register_interface):
 
     @cr_coro 
     def get_shift_state(self): #состояние смены
+        return self._get_shift_state()
+    
+    def _get_shift_state(self):
         data={}
         self._setParam('LIBFPTR_PARAM_DATA_TYPE', 'LIBFPTR_DT_SHIFT_STATE')
         self._queryData()
@@ -184,10 +187,10 @@ class Atl_cash_register(Cash_register_interface):
    
     def _setSingleSetting(self, param, value):
         if isinstance(param, str):
-           param=self._get_const(param) if value[:8]=='LIBFPTR_' else value
+           param=self._get_const(param) if param[:8]=='LIBFPTR_' else param
         if isinstance(value, str):
            value=self._get_const(value) if value[:8]=='LIBFPTR_' else value
-        self.driver.setSingleSetting(param, str(value))   
+        self.driver.setSingleSetting(str(param), str(value))   
        
     def _setParam(self, param, value):
         if isinstance(param, str):
@@ -243,7 +246,7 @@ class Atl_cash_register(Cash_register_interface):
     def _cancel_receipt(self):
         self.driver.cancelReceipt()  
 
-    @cr_coro:
+    @cr_coro
     def get_not_sent_docs(self):
         self._setParam('LIBFPTR_PARAM_FN_DATA_TYPE', 'LIBFPTR_FNDT_OFD_EXCHANGE_STATUS')
         self._fnQueryData()
