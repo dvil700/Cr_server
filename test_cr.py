@@ -16,8 +16,8 @@ async def connect_to_driver(event_loop):
         
         
 class TestCR:
-    def test_first(self, connect_to_driver, event_loop):
-         asyncio.sleep(5, loop=event_loop)
+    async def test_first(self, connect_to_driver, event_loop):
+        await asyncio.sleep(5, loop=event_loop)
          
          
  
