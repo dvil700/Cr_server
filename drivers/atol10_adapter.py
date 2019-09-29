@@ -212,9 +212,8 @@ class Atl_cash_register(Cash_register_interface):
             self._setParam('LIBFPTR_PARAM_PAYMENT_TYPE', payment['payment_type'])
             self._setParam('LIBFPTR_PARAM_PAYMENT_SUM', float(payment['summ']))
             if self.driver.payment()<0:
-                pass
-                #self._cancel_receipt()
-                #raise CROperationError(self.name, 'Ошибка регистрации оплаты: ' + self._errorDescription())
+                self._cancel_receipt()
+                raise CROperationError(self.name, 'Ошибка регистрации оплаты: ' + self._errorDescription())
         # Тип оплаты
         # 0 - наличными
         # 1 - безналичными
@@ -229,9 +228,8 @@ class Atl_cash_register(Cash_register_interface):
             self._setParam('LIBFPTR_PARAM_TAX_TYPE', 'LIBFPTR_TAX_NO') #налог. Если организация платит НДС, то необходимо изменить с этим учетом
             self._setParam(1212,int(product['paymentObject']))
             if self.driver.registration()<0:
-                pass
-                #self._cancel_receipt()
-                #raise CROperationError(self.name, 'Ошибка регистрации товара: ' + self._errorDescription())
+                self._cancel_receipt()
+                raise CROperationError(self.name, 'Ошибка регистрации товара: ' + self._errorDescription())
               
     def _queryData(self):
         self.driver.queryData()    
@@ -321,9 +319,13 @@ class Atl_cash_register(Cash_register_interface):
         if self._openReceipt()<0:
              self.driver.cancelReceipt()
              raise CROperationError(self.name, 'Ошибка открытия чека: ' + self._errorDescription())
-              
-        self._register_products(products)
-        self._register_payments(payments)
+
+        try:
+            self._register_products(products)
+            self._register_payments(payments)
+        except Exception as e:
+            self.driver.cancelReceipt()
+            raise e
         
         #(Налоги - НДС)
         self._setParam('LIBFPTR_PARAM_TAX_TYPE', 'LIBFPTR_TAX_NO')

@@ -25,6 +25,7 @@ class TestCR:
                    operator = None, is_electronary = True, r1192 = None, test_mode = True)
         try:
             result = await driver.register_operation(*data.values())
+            assert result>0, result
         except Exception as e:
             driver.driver._cancelReceipt()
             assert False, print(e)
