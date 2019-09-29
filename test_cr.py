@@ -27,7 +27,7 @@ class TestCR:
             result = await driver.register_operation(*data.values())
             assert result>0, result
         except Exception as e:
-            driver.driver._cancelReceipt()
+            driver.driver.cancelReceipt()
             assert False, print(e)
 
 
