@@ -16,17 +16,20 @@ async def connect_to_driver(event_loop):
         
         
 class TestCR:
-    async def te_first(self, connect_to_driver, event_loop):
+    async def test_first(self, connect_to_driver, event_loop):
         driver= connect_to_driver
         data= dict(email='ddnjjk@locald.ru',
                    products=[{'name': 'Поилка', 'price': 40, 'quantity': 1.0, 'paymentObject':1, 'paymentMethod':1},
                              {'name': 'Поилка вакуумная', 'price': 40, 'quantity': 1.0, 'paymentObject':1, 'paymentMethod':1}],
                    payments=[{'summ':80, 'payment_type':0}], total=80, receiptType=1,
                    operator = None, is_electronary = True, r1192 = None, test_mode = True)
+        try:
+            result = await driver.register_operation(*data.values())
+        except Exception as e:
+            driver.driver._cancelReceipt()
+            assert False, print(e)
 
-        result = await driver.register_operation(*data.values())
 
-    async def te_first(self, connect_to_driver, event_loop):
 
 
          
