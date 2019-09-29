@@ -307,7 +307,7 @@ class Atl_cash_register(Cash_register_interface):
             self._setParam('LIBFPTR_PARAM_RECEIPT_ELECTRONICALLY', True)
 
         self._setParam('LIBFPTR_PARAM_RECEIPT_TYPE', 'LIBFPTR_RT_SELL')
-        self._setParam(1008, command.email.value)
+        self._setParam(1008, email)
        
        #дополнительный реквизит 1192 рекомендуется использовать в операциях исправления ошибок:
        #возвраты, коррекции, "повторные чеки", в нем указывается ФПД исправляемого (первоначального) чека,
