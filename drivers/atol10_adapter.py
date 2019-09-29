@@ -297,12 +297,10 @@ class Atl_cash_register(Cash_register_interface):
         #http://consultantkhv.ru/newspaper/ispravlenie-oshibok-dopushhennyx-pri-formirovanii-kassovyx-chekov/                      
     
         receiptType=allowed_receiptTypes[int(receiptType)]
-        self._openReceipt()
         if self.driver.checkDocumentClosed()<0:
              self.cancel_receipt()
-             rs=self._openReceipt()
              if self.driver.checkDocumentClosed()<0:
-                  raise CROperationError(self.name, 'Предыдущий документ не закрыт или касса недоступна {}'.format(rs))
+                  raise CROperationError(self.name, 'Предыдущий документ не закрыт или касса недоступна')
        
         if not is_electronary: #чек электронный или бумажный
             self._set_operator(operator)
@@ -320,7 +318,8 @@ class Atl_cash_register(Cash_register_interface):
              self._setParam(1192, r1192)
 
         self._openReceipt()
-       # assert opening==100, 'open = {}'.format(opening)
+        assert False, "Document close ={}".format(self.driver.checkDocumentClosed())
+        # assert opening==100, 'open = {}'.format(opening)
 
        # if self._openReceipt()<0:
         #     self.driver.cancelReceipt()
