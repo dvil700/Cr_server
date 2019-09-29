@@ -328,7 +328,7 @@ class Atl_cash_register(Cash_register_interface):
         #(Налоги - НДС)
         self._setParam('LIBFPTR_PARAM_TAX_TYPE', 'LIBFPTR_TAX_NO')
         self._setParam('LIBFPTR_PARAM_TAX_SUM', 0)  # Если организация платит НДС, необходимо учесть это и включить налог во входные данные
-        self._receiptTax()
+        self.driver._receiptTax()
         #регистрируем итог
         self._setParam('LIBFPTR_PARAM_SUM', float(total))
 
