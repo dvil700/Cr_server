@@ -18,13 +18,14 @@ async def connect_to_driver(event_loop):
 class TestCR:
     async def test_first(self, connect_to_driver, event_loop):
         driver= connect_to_driver
-        data= dict(email='ddnjjk@locald.ru', receiptType=1, total=80,
+        data= dict(email='ddnjjk@locald.ru',
                    products=[{'name': 'Поилка', 'price': 40, 'quantity': 1.0, 'paymentObject':1, 'paymentMethod':1},
                              {'name': 'Поилка вакуумная', 'price': 40, 'quantity': 1.0, 'paymentObject':1, 'paymentMethod':1}],
-                   payments=[{'summ':80, 'payment_type':0}],  test_mode = True)
+                   payments=[{'summ':80, 'payment_type':0}], receiptType=1, total=80,
+                   operator = None, is_electronary = True, r1192 = None, test_mode = True)
 
-        result = await driver.register_operation(**data)
+        result = await driver.register_operation(*data.values())
 
-         
+
          
  

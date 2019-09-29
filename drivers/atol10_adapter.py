@@ -24,9 +24,9 @@ class Logger():
 
         
 def cr_coro(method): #Декоратор для асинхронного использования методов работы с кассой
-    async def wrapped(self, *args, **kwargs):
+    async def wrapped(self, *args):
         async with self.lock:
-            result=await self.loop.run_in_executor(None, method, self, *args, **kwargs)
+            result=await self.loop.run_in_executor(None, method, self, *args)
         return result
     return wrapped  
 
@@ -278,7 +278,7 @@ class Atl_cash_register(Cash_register_interface):
     
    
     @cr_coro
-    def register_operation(self, email, products, payments, total, receiptType, operator=None, 
+    def register_operation(self, email, products, payments, total, receiptType,  operator=None,
         is_electronary=True, r1192=None, test_mode=False):
         #регистрация фискальной операции
         allowed_receiptTypes={1:'LIBFPTR_RT_SELL', 2:'LIBFPTR_RT_SELL_RETURN', 7:'LIBFPTR_RT_SELL_CORRECTION',
