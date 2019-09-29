@@ -207,7 +207,7 @@ class Atl_cash_register(Cash_register_interface):
         return int(item['payment_type'])
      
     def _register_payments(self, payments):
-        payments.sort(payments, key=self._sort_by_payment_type, reverse=True)
+        payments.sort(key=self._sort_by_payment_type, reverse=True)
         for payment in payments:
             self._setParam('LIBFPTR_PARAM_PAYMENT_TYPE', payment['payment_type'])
             self._setParam('LIBFPTR_PARAM_PAYMENT_SUM', float(payment['summ']))
