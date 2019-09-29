@@ -49,8 +49,6 @@ class Cash_register_interface(ABC): #Интерфейс адаптера, чер
         pass
     
 
-    
-    
   
 class Atl_cash_register(Cash_register_interface):
     def __init__(self, cr_model, cr_port, cr_ofd_channel, cr_baudrate, cr_protocol, cr_passwd, 
@@ -216,7 +214,12 @@ class Atl_cash_register(Cash_register_interface):
             if self.driver.payment()<0:
                 self._cancel_receipt()
                 raise CROperationError(self.name, 'Ошибка регистрации оплаты: ' + self._errorDescription())
- 
+        # Тип оплаты
+        # 0 - наличными
+        # 1 - безналичными
+        # 2 - предварительная оплата (аванс)
+        # 3 - последующая оплата (кредит)
+
     def _register_products(self, products):
         for product in products:
             self._setParam('LIBFPTR_PARAM_COMMODITY_NAME', product['name'])
@@ -306,7 +309,7 @@ class Atl_cash_register(Cash_register_interface):
         self._setParam('LIBFPTR_PARAM_RECEIPT_TYPE', 'LIBFPTR_RT_SELL')
         self._setParam(1008, command.email.value)
        
-       #дополнительный реквизит 1192 рекомендуется использовать, в операциях исправления ошибок:
+       #дополнительный реквизит 1192 рекомендуется использовать в операциях исправления ошибок:
        #возвраты, коррекции, "повторные чеки", в нем указывается ФПД исправляемого (первоначального) чека,
        #ссылка с подробной информацией о возвратах и коррекциях выше
         if r1192: 
@@ -332,8 +335,9 @@ class Atl_cash_register(Cash_register_interface):
               
 
         if test_mode:
-             self.driver.cancelReceipt()
-             return
+        #Если тестовый режим, то откатываем документ
+             return self.driver.cancelReceipt()
+
         #закрываем чек        
         if self.driver.closeReceipt()<0:
              self.driver.cancelReceipt()

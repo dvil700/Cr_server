@@ -17,7 +17,14 @@ async def connect_to_driver(event_loop):
         
 class TestCR:
     async def test_first(self, connect_to_driver, event_loop):
-        await asyncio.sleep(5, loop=event_loop)
+        driver= connect_to_driver
+        data= dict(email='ddnjjk@locald.ru', receiptType=1, total=80,
+                   products=[{'name': 'Поилка', 'price': 40, 'quantity': 1.0, 'paymentObject':1, 'paymentMethod':1},
+                             {'name': 'Поилка вакуумная', 'price': 40, 'quantity': 1.0, 'paymentObject':1, 'paymentMethod':1}],
+                   payments=[{'summ':80, 'payment_type':0}],  test_mode = True)
+
+        result = await driver.register_operation(**data)
+
          
          
  
