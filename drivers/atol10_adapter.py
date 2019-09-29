@@ -318,7 +318,6 @@ class Atl_cash_register(Cash_register_interface):
              self._setParam(1192, r1192)
 
 
-
         if self._openReceipt()<0:
              self.driver.cancelReceipt()
              raise CROperationError(self.name, 'Ошибка открытия чека: ' + self._errorDescription())
