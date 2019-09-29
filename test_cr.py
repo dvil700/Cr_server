@@ -28,7 +28,7 @@ class TestCR:
             assert result>0, result
         except Exception as e:
             driver.driver.cancelReceipt()
-            assert False, print(e)
+            assert False, e
 
 
 
