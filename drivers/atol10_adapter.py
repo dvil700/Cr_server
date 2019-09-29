@@ -317,13 +317,10 @@ class Atl_cash_register(Cash_register_interface):
         if r1192: 
              self._setParam(1192, r1192)
 
-        self._openReceipt()
-        assert False, "Document close ={}".format(self.driver.checkDocumentClosed())
-        # assert opening==100, 'open = {}'.format(opening)
 
-       # if self._openReceipt()<0:
-        #     self.driver.cancelReceipt()
-        #     raise CROperationError(self.name, 'Ошибка открытия чека: ' + self._errorDescription())
+       if self._openReceipt()<0:
+             self.driver.cancelReceipt()
+             raise CROperationError(self.name, 'Ошибка открытия чека: ' + self._errorDescription())
               
         self._register_products(products)
         self._register_payments(payments)
