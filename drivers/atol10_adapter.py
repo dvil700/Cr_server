@@ -204,10 +204,10 @@ class Atl_cash_register(Cash_register_interface):
         return self.driver.errorDescription
     
     def _sort_by_payment_type(self, item):
-        return 10-int(item['payment_type'])
+        return int(item['payment_type'])
      
     def _register_payments(self, payments):
-        payments.sort(payments, key=_sort_by_payment_type)
+        payments.sort(payments, key=self._sort_by_payment_type, reverse=True)
         for payment in payments:
             self._setParam('LIBFPTR_PARAM_PAYMENT_TYPE', payment['payment_type'])
             self._setParam('LIBFPTR_PARAM_PAYMENT_SUM', float(payment['summ']))
