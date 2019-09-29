@@ -21,7 +21,7 @@ class TestCR:
         data= dict(email='ddnjjk@locald.ru',
                    products=[{'name': 'Поилка', 'price': 40, 'quantity': 1.0, 'paymentObject':1, 'paymentMethod':1},
                              {'name': 'Поилка вакуумная', 'price': 40, 'quantity': 1.0, 'paymentObject':1, 'paymentMethod':1}],
-                   payments=[{'summ':80, 'payment_type':0}], receiptType=1, total=80,
+                   payments=[{'summ':80, 'payment_type':0}], total=80, receiptType=1,
                    operator = None, is_electronary = True, r1192 = None, test_mode = True)
 
         result = await driver.register_operation(*data.values())
