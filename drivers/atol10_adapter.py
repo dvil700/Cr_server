@@ -201,7 +201,7 @@ class Atl_cash_register(Cash_register_interface):
         return self.driver.openReceipt()
     
     def _errorDescription(self):
-        return self.driver.errorDescription
+        return self.driver.errorDescription()
     
     def _sort_by_payment_type(self, item):
         return int(item['payment_type'])
