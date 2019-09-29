@@ -212,8 +212,9 @@ class Atl_cash_register(Cash_register_interface):
             self._setParam('LIBFPTR_PARAM_PAYMENT_TYPE', payment['payment_type'])
             self._setParam('LIBFPTR_PARAM_PAYMENT_SUM', float(payment['summ']))
             if self.driver.payment()<0:
-                self._cancel_receipt()
-                raise CROperationError(self.name, 'Ошибка регистрации оплаты: ' + self._errorDescription())
+                pass
+                #self._cancel_receipt()
+                #raise CROperationError(self.name, 'Ошибка регистрации оплаты: ' + self._errorDescription())
         # Тип оплаты
         # 0 - наличными
         # 1 - безналичными
@@ -228,8 +229,9 @@ class Atl_cash_register(Cash_register_interface):
             self._setParam('LIBFPTR_PARAM_TAX_TYPE', 'LIBFPTR_TAX_NO') #налог. Если организация платит НДС, то необходимо изменить с этим учетом
             self._setParam(1212,int(product['paymentObject']))
             if self.driver.registration()<0:
-                self._cancel_receipt()
-                raise CROperationError(self.name, 'Ошибка регистрации товара: ' + self._errorDescription()) 
+                pass
+                #self._cancel_receipt()
+                #raise CROperationError(self.name, 'Ошибка регистрации товара: ' + self._errorDescription())
               
     def _queryData(self):
         self.driver.queryData()    
