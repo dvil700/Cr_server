@@ -297,8 +297,8 @@ class Atl_cash_register(Cash_register_interface):
         receiptType=allowed_receiptTypes[int(receiptType)]
         if self.driver.checkDocumentClosed()<0:
              self.cancel_receipt()
-             if self.driver.checkDocumentClosed()()<0:
-                  raise CROperationError(self.name, 'Предыдущий документ не закрыт')
+             if self.driver.checkDocumentClosed()<0:
+                  raise CROperationError(self.name, 'Предыдущий документ не закрыт или касса недоступна')
        
         if not is_electronary: #чек электронный или бумажный
             self._set_operator(operator)
