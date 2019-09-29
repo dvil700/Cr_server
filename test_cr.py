@@ -22,13 +22,15 @@ class TestCR:
                    products=[{'name': 'Поилка', 'price': 40, 'quantity': 1.0, 'paymentObject':1, 'paymentMethod':1},
                              {'name': 'Поилка вакуумная', 'price': 40, 'quantity': 1.0, 'paymentObject':1, 'paymentMethod':1}],
                    payments=[{'summ':80, 'payment_type':0}], total=80, receiptType=1,
-                   operator = None, is_electronary = True, r1192 = None, test_mode = True)
+                   operator = {'name':'Ильяшенко Дмитрий Владимирович', 'ИНН':'344405326900'}, is_electronary = False,
+                   r1192 = None, test_mode = True)
         try:
             result = await driver.register_operation(*data.values())
             assert result==0, result
         except Exception as e:
             driver.driver.cancelReceipt()
             assert False, e
+
 
 
 

@@ -102,14 +102,6 @@ class Atl_cash_register(Cash_register_interface):
         await self.close_shift()
                       
 
-    def _shift_closing_control(self, call_async=False):
-        cr_state = self.get_shift_state()
-        cr_nowDateTime = self._get_time().timestamp()
-        if cr_state['value']>=1:
-            seconds_to_close=cr_state['now_dateTime']-cr_state['start_dateTime'].timestamp()-self.shift_live_time
-            return seconds_to_close
-
-
 
     @property
     def shift_opened(self):
@@ -130,7 +122,11 @@ class Atl_cash_register(Cash_register_interface):
              counter+=1
              if counter>=10:
                   raise CRFatalError('Невозможно закрыть смену')
-        self._shift_opened=False 
+        self._shift_opened=False
+        if self.shift_closing_task and isinstance(self.shift_closing_task, asyncio.Task):
+            self.shift_closing_task.cancel()
+
+
        
 
     @cr_coro 
@@ -238,9 +234,10 @@ class Atl_cash_register(Cash_register_interface):
         self.driver.fnQueryData() 
     
     def _set_operator(self, operator): #при оффлайн продаже необходимо указать оператора
-        self._setParam(1021, name)
-        self._setParam(1203, inn)
-        self.driver.operatorLogin()
+        self._setParam(1021, operator['name'])
+        self._setParam(1203, operator['inn'])
+        if self.driver.operatorLogin()<0:
+            raise CROperationError(self.name, 'Не удалось добавить оператора')
 
     @cr_coro
     def cancel_receipt(self):
