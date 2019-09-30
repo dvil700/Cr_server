@@ -90,14 +90,12 @@ class Atl_cash_register(Cash_register_interface):
         
         
     async def shift_closing_timer(self, seconds_to_close=None):
-        await self.lock.acquire()
         if seconds_to_close is None:
             cr_state = await self.get_shift_state()   
             if cr_state['value']>=1:
                 seconds_to_close=cr_state['now_dateTime'].timestamp()-cr_state['start_dateTime'].timestamp()-self.shift_live_time
                 seconds_to_close=seconds_to_close-self.shift_closing_delay
             else:
-                await self.lock.release()
                 return
         if seconds_to_close > self.shift_closing_delay:
              await asyncio.sleep(seconds_to_close)
@@ -105,22 +103,20 @@ class Atl_cash_register(Cash_register_interface):
         #операции с кассой могут быть длительные (особенно, когда связанны с печатью),
         #поэтому необходимо начинать процедуру закрытия смены заблаговременно за shift_closing_delay секунд.
         #Команды, декорированные @cr_coro выполняются с блокировкой asyncio.Lock()
-        done, pending = await asyncio.wait({self.close_shift(self.shift_closing_delay),
-                            self.lock.release()}, loop=self.loop, timeout=shift_closing_delay+10)
 
-                      
+        await self.close_shift(self.shift_closing_delay)
 
 
     @property
     def shift_opened(self):
-        return self._shift_opened    
+        return self._shift_opened
 
     @cr_coro
     def close_shift(self, delay=0):
-        time.sleep(delay)
-        self._close_shift       
+        self._close_shift(delay)
            
-    def _close_shift(self):
+    def _close_shift(self, delay):
+        time.sleep(delay)
         self._setParam('LIBFPTR_PARAM_REPORT_TYPE', 'LIBFPTR_RT_CLOSE_SHIFT')
         #self._setParam('LIBFPTR_PARAM_REPORT_ELECTRONICALLY', True) #чтобы не печатался отчет о закрытии смены
         self.driver.report()

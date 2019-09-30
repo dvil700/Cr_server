@@ -9,6 +9,7 @@ pytestmark=pytest.mark.asyncio
 @pytest.yield_fixture
 async def connect_to_driver(event_loop):
     cash_register=Atl_cash_register(**CR_CONFIG, loop=event_loop)
+    await  asyncio.sleep(5, event_loop)
     try:
         yield cash_register
     finally:
