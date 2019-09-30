@@ -25,8 +25,7 @@ class TestCR:
                    operator = {'name':'Ильяшенко Дмитрий Владимирович', 'inn':'344405326900'}, is_electronary = False,
                    r1192 = None, test_mode = True)
         try:
-            await asyncio.sleep(10)
-            result = 0#await driver.register_operation(*data.values())
+            result = await driver.register_operation(*data.values())
             assert result==0, result
         except Exception as e:
             driver.driver.cancelReceipt()
