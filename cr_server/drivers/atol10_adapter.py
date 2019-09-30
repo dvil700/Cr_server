@@ -95,6 +95,8 @@ class Atl_cash_register(Cash_register_interface):
             if cr_state['value']>=1:
                 seconds_to_close=cr_state['now_dateTime'].timestamp()-cr_state['start_dateTime'].timestamp()-self.shift_live_time
                 seconds_to_close=seconds_to_close-self.shift_closing_delay
+                if seconds_to_close<0:
+                    seconds_to_close=0
             else:
                 await asyncio.sleep(0)
                 return
