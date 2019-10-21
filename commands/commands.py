@@ -1,4 +1,6 @@
 import asyncio
+import json
+
 from commands import models
 from datetime import datetime
 from commands.fields import Group_of_fields, Integer_field
@@ -129,23 +131,25 @@ class Command(Group_of_fields):
     def get_errors(self):
         return self._error_list if len(self._error_list) > 0 else None
 
-    def __eq__(self, other):
-        return self.priority == other.priority
-
-    def __ne__(self, other):
-        return self.priority != other.priority
-
     def __lt__(self, other):
+        if self.priority == other.priority:
+            return self['client_operation_datetime']<other['client_operation_datetime']
         return self.priority < other.priority
 
     def __gt__(self, other):
+        if self.priority == other.priority:
+            return self['client_operation_datetime']>other['client_operation_datetime']
         return self.priority > other.priority
 
     def __le__(self, other):
+        if self.priority == other.priority:
+            return self['client_operation_datetime']<=other['client_operation_datetime']
         return self.priority <= other.priority
 
     def __ge__(self, other):
-        return self.priority>=other.priority
+        if self.priority == other.priority:
+            return self['client_operation_datetime']>=other['client_operation_datetime']
+        return self.priority >= other.priority
 
     def __getitem__(self, key):
         return self.data_dict[key]
@@ -170,12 +174,8 @@ class Command(Group_of_fields):
         self._result = result
         if not getattr(self, '_result_future', None):
             self._result_future = self.loop.create_future()
-        cancelled = self._result_future.cancelled()
-        done = self._result_future.done()
-        try:
+        if not self._result_future.done() or not self._result_future.cancelled():
             self._result_future.set_result(True)
-        except:
-            print('cancelled {}, done {}'.format(cancelled, done))
         await self.add_result_in_db()  # записываем результаты в db
         return result
 
