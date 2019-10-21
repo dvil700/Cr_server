@@ -151,7 +151,8 @@ class Command(Group_of_fields):
         return self.data_dict[key]
 
     async def wait_executed(self):
-        # Метод для ожидания выполнения команды извне (например, чтобы дождаться выполнения и отдать результат в одном соединении)
+        # Метод для ожидания выполнения команды извне (например, чтобы дождаться выполнения и отдать результат в
+        # одном соединении)
         if self.state.value > 0:
             await asyncio.sleep(0)
             return
@@ -169,8 +170,12 @@ class Command(Group_of_fields):
         self._result = result
         if not getattr(self, '_result_future', None):
             self._result_future = self.loop.create_future()
-        self._result_future.set_result(True)
-
+        cancelled = self._result_future.cancelled()
+        done = self._result_future.done()
+        try:
+            self._result_future.set_result(True)
+        except:
+            print('cancelled {}, done {}'.format(cancelled, done))
         await self.add_result_in_db()  # записываем результаты в db
         return result
 
