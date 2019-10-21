@@ -157,7 +157,7 @@ class Command(Group_of_fields):
             return
         if not getattr(self, '_result_future', None):
             self._result_future = self.loop.create_future()
-        if self._result_future.canceled():
+        if self._result_future.cancelled():
             await asyncio.sleep(0)
             return
         await self._result_future
