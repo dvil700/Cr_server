@@ -155,7 +155,7 @@ class Command(Group_of_fields):
         if self.state.value > 0:
             await asyncio.sleep(0)
             return
-        if not getattr(self, _result_future, None):
+        if not getattr(self, '_result_future', None):
             self._result_future = self.loop.create_future()
         if self._result_future.canceled():
             await asyncio.sleep(0)
