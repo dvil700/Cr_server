@@ -129,8 +129,23 @@ class Command(Group_of_fields):
     def get_errors(self):
         return self._error_list if len(self._error_list) > 0 else None
 
-    def __cmp__(self, other):
-        return self.priority - other.priority
+    def __eq__(self, other):
+        return self.priority == other.priority
+
+    def __ne__(self, other):
+        return self.priority != other.priority
+
+    def __lt__(self, other):
+        return self.priority < other.priority
+
+    def __gt__(self, other):
+        return self.priority > other.priority
+
+    def __le__(self, other):
+        return self.priority <= other.priority
+
+    def __ge__(self, other):
+        return self.priority>=other.priority
 
     def __getitem__(self, key):
         return self.data_dict[key]
