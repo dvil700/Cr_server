@@ -1,6 +1,5 @@
 import asyncio
 import json
-
 from commands import models
 from datetime import datetime
 from commands.fields import Group_of_fields, Integer_field
@@ -31,9 +30,12 @@ class Command(Group_of_fields):
     client_operation_id = Integer_field()  # id операции в системе клиента
     client_operation_datetime = Integer_field()  # Unix Time операции в системе клиента в секундах
 
-    def __init__(self, user_id, incoming_dict=None, loop=None):
+    def __init__(self, user_id, incoming_dict=None, datetime_add=None, loop=None):
         self.user_id = user_id
         self.data_dict = incoming_dict
+        if not datetime_add and isinstance(incoming_dict, dict):
+            datetime_add=incoming_dict.get('datetime_add', None)
+        self.datetime_add = datetime_add
         self.fields = self.get_fields()
         self._error_list = []
         self._name = ''
@@ -64,8 +66,9 @@ class Command(Group_of_fields):
         status = await self.define_state()
         cop_id = self.data_dict['client_operation_id']
         cop_dt = datetime.fromtimestamp(self.data_dict['client_operation_datetime']).strftime('%Y-%m-%d %H:%M:%S')
+        datetime_add = self.datetime_add.strftime('%Y-%m-%d %H:%M:%S')
         self.id = await self.model_operations.add_new_onperation(self.user_id, self.__class__.__name__, cop_id, cop_dt,
-                                                                 status.value, self.data_dict)
+                                                                 status.value, datetime_add, self.data_dict)
         return self.id
 
     async def repeated_request_represent(self):
@@ -106,7 +109,7 @@ class Command(Group_of_fields):
         await self.model_operations.add_result(self.id, result=self._result, errors=self.get_errors())
 
     async def get_result_from_db(self):
-        data = await model_operations.get_results(self, self.id, get_errors=True)
+        data = await self.model_operations.get_results(self, self.id, get_errors=True)
         self._result = json.loads(data['result'])
         self._error_list = json.loads(data['errors'])
 
@@ -114,7 +117,7 @@ class Command(Group_of_fields):
         result = await self.model_operations.get_proccessed_operation_id(user_id, cop_id, cop_dt)
         return result
 
-    def validate(self):
+    def validate(self, data=None, route=None, main_parent=None):
         result = super().validate(self.data_dict, None, self)
         self._is_valid = True if len(self._error_list) == 0 else False
         return self._is_valid
@@ -131,25 +134,26 @@ class Command(Group_of_fields):
     def get_errors(self):
         return self._error_list if len(self._error_list) > 0 else None
 
-    def __lt__(self, other):
+    def cmp_with_date(self, other, cmp_result):
+        if cmp_result:
+            return cmp_result
         if self.priority == other.priority:
-            return self['client_operation_datetime']<other['client_operation_datetime']
-        return self.priority < other.priority
+            # При равном приоритете команд, "главнее" та, которая раньше пришла
+            return self.datetime_add > other.datetime_add
+        else:
+            return False
+
+    def __lt__(self, other):
+        return self.cmp_with_date(other, self.priority < other.priority)
 
     def __gt__(self, other):
-        if self.priority == other.priority:
-            return self['client_operation_datetime']>other['client_operation_datetime']
-        return self.priority > other.priority
+        return self.cmp_with_date(other, self.priority > other.priority)
 
     def __le__(self, other):
-        if self.priority == other.priority:
-            return self['client_operation_datetime']<=other['client_operation_datetime']
-        return self.priority <= other.priority
+        return self.cmp_with_date(other, self.priority <= other.priority)
 
     def __ge__(self, other):
-        if self.priority == other.priority:
-            return self['client_operation_datetime']>=other['client_operation_datetime']
-        return self.priority >= other.priority
+        return self.cmp_with_date(other, self.priority >= other.priority)
 
     def __getitem__(self, key):
         return self.data_dict[key]
@@ -241,12 +245,12 @@ _COMMANDS_ALLOWED = {
 }
 
 
-def choose_command(user_id, data_dict):
+def choose_command(user_id, data_dict, datetime_add=None):
     if 'command' not in data_dict:
         return False
     command_name = str(data_dict['command']).lower().capitalize()
     if command_name in _COMMANDS_ALLOWED:
-        choozen_command = _COMMANDS_ALLOWED[command_name](user_id, incoming_dict=data_dict)
+        choozen_command = _COMMANDS_ALLOWED[command_name](user_id, incoming_dict=data_dict, datetime_add=datetime_add)
         return choozen_command
     else:
         return False

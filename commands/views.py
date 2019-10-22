@@ -5,7 +5,7 @@ import json
 from commands import choose_command
 from pymysql.err import IntegrityError
 from aiojobs.aiohttp import atomic
-
+from datetime import datetime
 
 def make_error_json_message(data):
     if isinstance(data, str):
@@ -19,7 +19,7 @@ def make_error_json_message(data):
 @atomic
 async def command_handler(request):  # Обработчик запросов
     user = request['user']
-    current_command = choose_command(user.id, request['data'])
+    current_command = choose_command(user.id, request['data'], datetime_add=datetime.now())
     if not current_command:
         raise web.HTTPBadRequest(content_type='application/json',
                                  text=make_error_json_message('Команда не содержится в запросе, либо запрещена'))

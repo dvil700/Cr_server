@@ -7,10 +7,11 @@ class Operations(model.Model):
                         'order_id', 'summ', 'email')
 
     async def add_new_onperation(self, user_id, command, client_operation_id, client_operation_datetime, status,
-                                 operation_data=None):
-        params = (command, client_operation_id, user_id, status, client_operation_datetime,)
+                                 datetime_add, operation_data=None):
+        params = (command, client_operation_id, user_id, status, client_operation_datetime,
+                  datetime_add)
         request = '''INSERT INTO operation SET command=%s, client_operation_id=%s,
-        user_id=%s, status=%s, client_operation_datetime=%s'''
+        user_id=%s, status=%s, client_operation_datetime=%s, datetime_add=%s'''
         operation_id = await self.db.query(request, params)
         if isinstance(operation_data, dict):
             # запись входных данных (сделано одтельной таблицей, потому что нужно хранить для отладки
@@ -65,7 +66,8 @@ class Operations(model.Model):
         addition = ''
         if full_data:
             addition = ', client_operation_id, client_operation_datetime, user_id'
-        request = '''SELECT id, command, status{} FROM operation WHERE id=%s AND user_id=%s'''.format(addition)
+        request = '''SELECT id, command, status, datetime_add{} FROM operation 
+                   WHERE id=%s AND user_id=%s'''.format(addition)
         result = await self.db.query(request, (com_id, user_id,))
         return result
 
