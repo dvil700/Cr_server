@@ -2,10 +2,11 @@ from aiohttp import web
 from aiohttp.web import json_response
 import asyncio
 import json
-from commands import choose_command
+from commands import choose_command, get_already_executed
 from pymysql.err import IntegrityError
 from aiojobs.aiohttp import atomic
 from datetime import datetime
+
 
 def make_error_json_message(data):
     if isinstance(data, str):
@@ -39,7 +40,7 @@ async def command_handler(request):  # Обработчик запросов
         await asyncio.wait_for(current_command.wait_executed(),
                                timeout=request.config_dict['EXECUTION_WAITING_TIMEOUT'])
     except asyncio.TimeoutError:
-        headers = {'Location': '/get_result?id=' + str(current_command.id)}
+        headers = {'Location': '/get_result?id=%s' % str(current_command.id)}
         return json_response(status=202, headers=headers, data={'id': current_command.id})
     data = current_command.represent()
     print(data)
@@ -49,5 +50,7 @@ async def command_handler(request):  # Обработчик запросов
 async def result_handler(request):
     req_id = request['data'].get('id', None)
     if not req_id:
-        raise web.HTTPBadRequest(content_type='application/json',
-                                 text=make_error_json_message(current_command.get_errors()))
+        raise web.HTTPNotFound()
+    current_command = get_already_executed(req_id, request['user'].id)
+    data = current_command.represent()
+    return json_response(status=data['status'], data=data)

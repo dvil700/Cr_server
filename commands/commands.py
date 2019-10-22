@@ -139,7 +139,7 @@ class Command(Group_of_fields):
             return cmp_result
         if self.priority == other.priority:
             # При равном приоритете команд, "главнее" та, которая раньше пришла
-            return self.datetime_add > other.datetime_add
+            return self.datetime_add < other.datetime_add
         else:
             return False
 
