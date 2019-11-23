@@ -33,7 +33,7 @@ class TestCR:
             assert False, e
          '''
 
-    async def test_get_cr_data(self, connect_to_driver, event_loop):
+    async def test_get_cr_data(self, driver, event_loop):
         try:
             result = await driver.get_cr_data()
             print(result)
