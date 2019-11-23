@@ -208,27 +208,28 @@ class Atl_cash_register(Cash_register_interface):
         return cr_dateTime
 
     def _get_const(self, param):
-        return getattr(self.driver, param)
+        if isinstance(param, str):
+            return getattr(self.driver, param)
+        elif isinstance(param, int):
+            return param
+        else:
+            raise ValueError
 
     def _getParamInt(self, param):
-        if isinstance(param, str):
-            param = self._get_const(param)
-            return self.driver.getParamInt(param)
+        param = self._get_const(param)
+        return self.driver.getParamInt(param)
 
     def _getParamDouble(self, param):
-        if isinstance(param, str):
-            param = self._get_const(param)
-            return self.driver.getParamDouble(param)
+        param = self._get_const(param)
+        return self.driver.getParamDouble(param)
 
     def _getParamString(self, param):
-        if isinstance(param, str):
-            param = self._get_const(param)
-            return self.driver.getParamString(param)
+        param = self._get_const(param)
+        return self.driver.getParamString(param)
 
     def _getParamDateTime(self, param):
-        if isinstance(param, str):
-            param = self._get_const(param)
-            return self.driver.getParamDateTime(param)
+        param = self._get_const(param)
+        return self.driver.getParamDateTime(param)
 
     def _setSingleSetting(self, param, value):
         if isinstance(param, str):
