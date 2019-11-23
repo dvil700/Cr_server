@@ -52,6 +52,11 @@ class Cash_register_interface(ABC):  # Интерфейс адаптера, че
     def close(self):
         pass
 
+    @cr_coro
+    @abstractmethod
+    def get_hardware_data(self):
+        pass
+
 
 class Tst_cr_adapter(Cash_register_interface):
     # заглушка для тестирования
@@ -67,11 +72,20 @@ class Tst_cr_adapter(Cash_register_interface):
                            receiptType, operator=None, is_electronary=True, r1192=None):
         time.sleep(random.randint(0, 2))
         return {'documentType': 1, 'documentNumber': 22334, 'receiptType': 1, 'fiscalSign': 55566,
-                'fnSerialNumber': 7896622558, 'documentDate': str(datetime.now()), 'document_summ': 3000}
+                'documentDate': str(datetime.now()), 'document_summ': total}
 
     @cr_coro
     def close(self):
         pass
+
+    @cr_coro
+    def get_cr_data(self):
+        data = dict(fns_url = 'https://www.nalog.ru', address = 'www.mysite.ru', company = 'ООО "МС"', email = 'email@mysite.ru',
+                    payment_addr = 'ул. Ленина, д.50', reg_num = '2234254545335', ffd_version = '1005',
+                    ofd_name = 'ООО "ОФД', ofd_inn = '45353534535', inn= '32423424234')
+
+        data['fn_serial'] = '342342423432234'
+        return data
 
 
 class Atl_cash_register(Cash_register_interface):
@@ -170,6 +184,22 @@ class Atl_cash_register(Cash_register_interface):
     @cr_coro
     def get_time(self):
         return self._get_time()
+
+    @cr_coro
+    def get_cr_data(self):
+        self._setParam('LIBFPTR_PARAM_FN_DATA_TYPE', 'LIBFPTR_FNDT_REG_INFO')
+        self._fnQueryData()
+        getint = self._getParamInt
+        getstr = self._getParamString
+        data = dict(fns_url = getstr(1060), address= getstr(1009) , inn= getstr(1018), company = getstr(1048),
+                    payment_addr = getstr(1187), reg_num = getstr(1037), ffd_version = getint(1209),
+                    ofd_name = getstr(1046), ofd_inn = getstr(1017), email = getstr(117),)
+
+        self._setParam('LIBFPTR_PARAM_FN_DATA_TYPE', 'LIBFPTR_FNDT_FN_INFO')
+        self._fnQueryData()
+        data['fn_serial'] = getstr('LIBFPTR_PARAM_SERIAL_NUMBER')
+        return data
+
 
     def _get_time(self):  # текущее время в кассе
         self._setParam('LIBFPTR_PARAM_DATA_TYPE', 'LIBFPTR_DT_DATE_TIME')
@@ -272,7 +302,7 @@ class Atl_cash_register(Cash_register_interface):
     def get_not_sent_docs(self):
         self._setParam('LIBFPTR_PARAM_FN_DATA_TYPE', 'LIBFPTR_FNDT_OFD_EXCHANGE_STATUS')
         self._fnQueryData()
-        data = {}
+        data = dict()
         data['unsentCount'] = self._getParamInt('LIBFPTR_PARAM_DOCUMENTS_COUNT')
         data['unsentFirstNumber'] = self._getParamInt('LIBFPTR_PARAM_DOCUMENT_NUMBER')
         data['unsentDateTime'] = self._getParamDateTime('LIBFPTR_PARAM_DATE_TIME')
@@ -367,17 +397,16 @@ class Atl_cash_register(Cash_register_interface):
 
         self._setParam('LIBFPTR_PARAM_FN_DATA_TYPE', 'LIBFPTR_FNDT_LAST_RECEIPT')
         self._fnQueryData()
-        result_data = {}
-        result_data['fnSerialNumber'] = self._getParamInt('LIBFPTR_PARAM_SERIAL_NUMBER')
-        result_data['documentNumber'] = self._getParamInt('LIBFPTR_PARAM_DOCUMENT_NUMBER')
-        result_data['receiptType'] = self._getParamInt('LIBFPTR_PARAM_RECEIPT_TYPE')
-        result_data['receiptSum'] = self._getParamDouble('LIBFPTR_PARAM_RECEIPT_SUM')
-        result_data['fiscalSign'] = self._getParamString('LIBFPTR_PARAM_FISCAL_SIGN')
-        result_data['dateTime'] = str(self._getParamDateTime('LIBFPTR_PARAM_DATE_TIME'))
+        result_data = {'fnSerialNumber': self._getParamInt('LIBFPTR_PARAM_SERIAL_NUMBER'),
+                       'documentNumber': self._getParamInt('LIBFPTR_PARAM_DOCUMENT_NUMBER'),
+                       'receiptType': self._getParamInt('LIBFPTR_PARAM_RECEIPT_TYPE'),
+                       'receiptSum': self._getParamDouble('LIBFPTR_PARAM_RECEIPT_SUM'),
+                       'fiscalSign': self._getParamString('LIBFPTR_PARAM_FISCAL_SIGN'),
+                       'dateTime': str(self._getParamDateTime('LIBFPTR_PARAM_DATE_TIME'))}
 
         closing_task = getattr(self, 'shift_closing_task', None)
         if closing_task and (closing_task.done() ^ closing_task.cancelled()):
-            self.closing_task = loop.create_task(shift_closing_timer())
+            self.closing_task = self.loop.create_task(self.shift_closing_timer())
 
         return result_data
 
