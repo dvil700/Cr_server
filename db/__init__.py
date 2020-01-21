@@ -1,4 +1,4 @@
-from db.db import Data_base
+from db.db import SADataBase
 
 
-__all__=['Data_base']
+__all__=['SADataBase']

@@ -6,8 +6,12 @@ class Invoker():  # реализует очередь с приоритетам�
         self.storage = asyncio.PriorityQueue()  # хранилище команд на исполнение, очередь с приоритетами
         self.lock = asyncio.Lock()
         self.loop = loop
-        self.cr_adapter = cr_adapter
+        self._cr_adapter = cr_adapter
         self.current_task = None
+
+    @property
+    def cr_adapter(self):
+        return self._cr_adapter
 
     async def _execute(self):
         async with self.lock:

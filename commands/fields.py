@@ -48,7 +48,10 @@ class Field():
         return route + self.get_name()
 
 
-class Single_field(Field):
+class SingleField(Field):
+    _type = str
+    _wrong_type_message = ''
+
     def __init__(self, allowed_values=None, required=True, default=None):
         super().__init__(required, default)
         if allowed_values:
@@ -59,20 +62,28 @@ class Single_field(Field):
         else:
             self.allowed_values = None
 
-    # Родитель для полей с элементарными типами данных
+        # Родитель для полей с элементарными типами данных
+
     def base_validation(self, value, route, command_instance=None):
         if value is None:
             if self.required:
                 raise ValidationError(route, 'Отсутствует обязательное поле')
             else:
                 return self.default
+        try:
+            value = self._type(value)
+        except (ValueError, TypeError, InvalidOperation):
+            raise ValidationError(route, self._wrong_type_message)
+
         if self.allowed_values and value not in self.allowed_values:
             raise ValidationError(route, 'Неразрешенное значение поля')
-
         return value
 
 
-class Numeric_field(Single_field):
+class Numeric_field(SingleField):
+    _type = float
+    _wrong_type_message = 'Неверный тип поля. Значение должно быть числом'
+
     def __init__(self, min_value=0, max_value=None, allowed_values=None, required=True, default=None):
         self.min_value = min_value
         self.max_value = max_value
@@ -85,36 +96,35 @@ class Numeric_field(Single_field):
             raise ValidationError(route, 'Значение поля не должно быть больше {}'.format(self.max_value))
         return value
 
-
-class Integer_field(Numeric_field):
     def current_validation(self, value, route, main_parent):
-        try:
-            value = int(value)
-        except (ValueError, TypeError):
-            raise ValidationError(route, 'Неверный тип поля, должно быть целым числом')
         value = self.is_in_range(value, route)
         return value
 
 
-class Decimal_field(Numeric_field):
+class IntegerField(Numeric_field):
+    _type = int
+    _wrong_type_message = 'Неверный тип поля. Значение должно быть целым числом'
+
+
+class DecimalField(Numeric_field):
+    _wrong_type_message = 'Неверный тип поля. Значение должно быть числом'
+
     def __init__(self, min_value=0, max_value=None, precision=2, allowed_values=None, required=True, default=None):
         super().__init__(min_value, max_value, allowed_values=allowed_values, required=required, default=default)
         self._precision = '.{}'.format('0' * precision)  # точность (количество знаков после запятой)
 
+    def _type(self, value):
+        return Decimal(value).quantize(Decimal(self._precision))
+    
     @property
     def precision(self):
         return len(self._precision - 1)
 
-    def current_validation(self, value, route, main_parent):
-        try:
-            value = Decimal(value).quantize(Decimal(self._precision))
-        except (ValueError, TypeError, InvalidOperation):
-            raise ValidationError(route, 'Неверный тип поля, должно быть целым или десятичной дробью')
-        value = self.is_in_range(value, route)
-        return value
 
+class StringField(Field):
+    _type = str
+    _wrong_type_message = 'Неверный тип поля. Значение должно быть строкой.'
 
-class String_field(Field):
     def __init__(self, *a, min_lenght=1, max_lenght=None, **k):
         self.min_lenght = min_lenght
         self.max_lenght = max_lenght
@@ -131,15 +141,11 @@ class String_field(Field):
         return value
 
     def current_validation(self, value, route, main_parent):
-        try:
-            value = str(value)
-        except (ValueError, TypeError):
-            raise ValidationError(route, 'Неверный тип поля, должно быть строковой переменной')
         value = self.check_lenght(value, route)
         return str(value)
 
 
-class EmailOrPhone_field(String_field):  #
+class EmailorphoneField(StringField):
     def __init__(self, *a, min_lenght=0, max_lenght=None, **k):
         self.min_lenght = min_lenght
         self.max_lenght = max_lenght
@@ -147,19 +153,19 @@ class EmailOrPhone_field(String_field):  #
 
     def current_validation(self, value, route, main_parent):
         try:
-            value = str(value)
             value = self.check_lenght(value, route)
             value.replace(' ', '')
             value = re.match(r'(.+@.+\..{1,10}$)|(\+{0,1}[0-9]{8,15}$)', value, re.I).group(0)
         except (ValueError, AttributeError, TypeError):
             raise ValidationError(route,
-                                  'Неверный тип либо значение поля, значение поля должно быть строковой переменной, содержащей email либо номер телефона')
+                                  'Неверное значение поля, значение поля должно быть строкой, '
+                                  'содержащей email либо номер телефона')
 
         return str(value)
 
 
-class Group_of_fields(Field):
-    # Класс для полей, основа для которых словарь с элементами типа Field
+class GroupOfFields(Field):
+    # Класс для групп полей
 
     def __init__(self):
         super().__init__()
@@ -193,15 +199,15 @@ class Group_of_fields(Field):
         return new_dict
 
 
-class Group_list(Field):
-    # Класс для полей, основа для которых список с элементами с типом Group_of_fields
+class GroupList(Field):
+    # Cписок, элементы которого группы полей GroupOfFields
     def __init__(self, group, required=True):
         self.required = required
         self.group_of_fields = group
 
     def base_validation(self, data_list, route, command_instance):
         if not isinstance(data_list, list) and self.required:
-            raise ValidationError(route, 'Отсутствует обязательный массив(список) групп полей')
+            raise ValidationError(route, 'Отсутствует обязательный список групп полей')
             return None
         elif not isinstance(data_list, list) and not self.required:
             return self.default
@@ -220,12 +226,12 @@ class Group_list(Field):
         return total
 
 
-class Product(Group_of_fields):
-    name = String_field(max_lenght=255)
-    paymentObject = Integer_field(allowed_values=[1, 4])  # Тип продукта (1 - товар, 4 - услуга)
-    paymentMethod = Integer_field(allowed_values=tuple(i for i in range(1, 7)))
-    quantity = Decimal_field(precision=3)
-    price = Decimal_field()
+class Product(GroupOfFields):
+    name = StringField(max_lenght=255)
+    paymentObject = IntegerField(allowed_values=[1, 4])  # Тип продукта (1 - товар, 4 - услуга)
+    paymentMethod = IntegerField(allowed_values=tuple(i for i in range(1, 7)))
+    quantity = DecimalField(precision=3)
+    price = DecimalField()
 
     def get_totals(self, data_dict):
         return data_dict['price'] * data_dict['quantity'].quantize(Decimal('.00'))
@@ -240,9 +246,9 @@ class Product(Group_of_fields):
     # creditPayment - оплата кредита
 
 
-class Payment(Group_of_fields):
-    paymentType = Integer_field(allowed_values=[i for i in range(0, 4)])
-    summ = Decimal_field()
+class Payment(GroupOfFields):
+    paymentType = IntegerField(allowed_values=[i for i in range(0, 4)])
+    summ = DecimalField()
 
     def get_totals(self, data_dict):
         return Decimal(data_dict['summ']).quantize(Decimal('.00'))

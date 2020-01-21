@@ -1,0 +1,56 @@
+{% extends 'form_container.html' %}
+
+{% block form_block %}
+
+    {% if ident %}
+     <form action="{{url(url_name, ident=ident)}}" method="post">
+    {% else %}
+     <form action="{{url(url_name, ident='new')}}" method="post">
+    {% endif %}
+            {{request.csrf.csrf_token}}
+            {% for field in form %}
+
+            <div class="row {% if field.widget.input_type == 'hidden' %} d-none {% endif %}">
+               <div class="col-xs-12 col-sm-12 col-md-2 col-lg-2 mb-3">
+                   {{field.label}}
+               </div>
+                <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 mb-3">
+                    {{field}}
+                    {% if field.errors %}
+                        {% for err in field.errors %} <div class="invalid-feedback">{{err}}</div> {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if additional %}
+                {% include additional %}
+            {% endif %}
+
+            {% for scroll_box in scroll_boxes %}
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6">
+                    <div class="row border rounded">
+                         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-4 align-self-center">
+                             {{scroll_box.text}}
+                         </div>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-8 align-self-center">
+                            <div class="scrollbox">
+                                {% for item in scroll_box.vals %}
+                                  <div>
+                                      <input type="checkbox" name="{{scroll_box.name}}" value="{{item.id}}"
+                                             {% if item.is_enabled!=0 %} {{item.is_enabled}} {% endif %}/>
+                                      {{item.name}}
+                                  </div>
+                                {% endfor %}
+                            </div>
+                         </div>
+                    </div>
+                 </div>
+            </div>
+            {% endfor %}
+
+            {% include 'form_buttons.html' %}
+
+    </form>
+{% endblock %}

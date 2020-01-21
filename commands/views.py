@@ -3,7 +3,6 @@ from aiohttp.web import json_response
 import asyncio
 import json
 from commands import choose_command, get_already_executed
-from pymysql.err import IntegrityError
 from aiojobs.aiohttp import atomic
 from datetime import datetime
 
@@ -18,9 +17,10 @@ def make_error_json_message(data):
 
 
 @atomic
-async def command_handler(request):  # Обработчик запросов
+async def command_handler(request):
     user = request['user']
-    current_command = choose_command(user.id, request['data'], datetime_add=datetime.now())
+    current_command = choose_command(request.rel_url.parts[-1][:-3], user.id, request.config_dict['db'],
+                                     request['data'], datetime_add=datetime.now())
     if not current_command:
         raise web.HTTPBadRequest(content_type='application/json',
                                  text=make_error_json_message('Команда не содержится в запросе, либо запрещена'))
@@ -28,15 +28,20 @@ async def command_handler(request):  # Обработчик запросов
         raise web.HTTPBadRequest(content_type='application/json',
                                  text=make_error_json_message(current_command.get_errors()))
 
-    try:
-        await current_command.add_new_in_db()
-    except IntegrityError:  # в случае если команда уже приходила, возвращаем код ответа 208 с id и location в заголовке
+    # в случае если команда уже приходила, возвращаем код ответа 208 с id и location в заголовке
+    # не по феншую но как-то так
+    is_repeated = await current_command.check_if_repeated()
+    if is_repeated:
         data = await current_command.repeated_request_represent()
-        headers = {'Location': '/get_result?id=' + str(data['id'])}
-        return json_response(status=208, headers=headers, data=data)
+        headers = {'Location': '/get_result?id=%s'%data['id']}
+        return json_response(status=data['status'], headers=headers, data={'operation_id': data['id']})
 
+    await current_command.add_new_in_db()
+
+    # Добавляем команду в invoker
     await request.config_dict['invoker'].put(current_command)
     try:
+        # ждем, пока выполнится команда EXECUTION_WAITING_TIMEOUT секунд.
         await asyncio.wait_for(current_command.wait_executed(),
                                timeout=request.config_dict['EXECUTION_WAITING_TIMEOUT'])
     except asyncio.TimeoutError:
@@ -51,6 +56,6 @@ async def result_handler(request):
     req_id = request['data'].get('id', None)
     if not req_id:
         raise web.HTTPNotFound()
-    current_command = get_already_executed(req_id, request['user'].id)
+    current_command = get_already_executed(req_id, request['user'].id, request['db'])
     data = current_command.represent()
     return json_response(status=data['status'], data=data)

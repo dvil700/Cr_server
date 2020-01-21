@@ -1,0 +1,16 @@
+{% extends 'list_container.html' %}
+
+{% block buttons %}
+    <nav>
+      <a class="btn btn-primary" href="{{request.rel_url}}new/" role="button">Добавить</a>
+      <a class="btn btn-primary" href="#" role="button">Удалить</a>
+    </nav>
+{% endblock %}
+
+{% block table %}
+  <form method="post" id="form">
+
+   {% include 'list_table.html' %}
+
+  </form>
+{% endblock %}
