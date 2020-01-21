@@ -1,0 +1,9 @@
+DB_ENGINE = "mysql+pymysql"
+DB_CONFIG = {"host": '127.0.0.1', "port": 3306, "user": 'test_user', "password": 'test_pass',
+             "db": 'test'}
+CR_CONFIG = {'cr_model': 'LIBFPTR_MODEL_ATOL_30F', 'cr_port': 'LIBFPTR_PORT_USB',
+             'cr_ofd_channel': 'LIBFPTR_SETTING_OFD_CHANNEL',
+             'cr_baudrate': '115200', 'cr_protocol': '2', 'cr_passwd': 30}
+COMMANDS_CONFIG = {'EXECUTION_WAITING_TIMEOUT': 5, } # Время ожидания исполнения команды (при http запросе)
+
+
