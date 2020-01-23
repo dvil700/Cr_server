@@ -4,7 +4,7 @@ from auth.models import User, Permission, Permission_type, Group, user_permissio
 from commands.models import Operation, IncomeData, CrHardware, CashRegister, Ofd, Company, OnlineCR, FiscalDocument
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from config import DB_ENGINE, DB_CONFIG
+from config import DB_ENGINE, DB_CONFIG, DB_CHARSET
 import os
 from dotenv import load_dotenv
 from pathlib import Path
@@ -44,6 +44,7 @@ if __name__ == '__main__':
     if not os.path.exists(env_path):
         raise FileExistsError('Не найден файл конфигурации settings.env')
     load_dotenv(dotenv_path=env_path)
-    engine = create_engine('{engine}://{user}:{password}@{host}:{port}/{db}'.format(engine = DB_ENGINE, **DB_CONFIG))
+    engine = create_engine('{engine}://{user}:{password}@{host}:{port}/{db}'.format(engine = DB_ENGINE, **DB_CONFIG),
+                           charset = DB_CHARSET)
     create_tables(engine)
     create_supeuser(engine)
