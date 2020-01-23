@@ -10,6 +10,7 @@ from . import texts
 from abc import ABC, abstractmethod
 from forms.form import Form
 from multidict import MultiDictProxy
+from auth import auth
 
 
 async def login_handler(request):
