@@ -32,7 +32,7 @@ async def cr_app_context(cr_app):
 
 
 def init_app(loop, name):
-    db = loop.run_until_complete(SADataBase.connect(config.DB_CONFIG, loop))
+    db = loop.run_until_complete(SADataBase.connect(config.DB_CONFIG, config.DB_CHARSET, loop))
     app = web.Application()
     app['db'] = db
     app.cleanup_ctx.append(context)

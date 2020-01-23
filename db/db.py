@@ -12,8 +12,8 @@ class DBaseMeta(type):
 
 class SADataBase(metaclass=DBaseMeta):
     @classmethod
-    async def connect(cls, config, loop):
-        pool = await create_engine(**config, loop=loop, autocommit=True)
+    async def connect(cls, config, charset, loop):
+        pool = await create_engine(**config, charset=charset, loop=loop, autocommit=True)
         return cls(pool)
 
     def __init__(self, pool=None):
