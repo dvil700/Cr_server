@@ -24,7 +24,8 @@ def init(db, cr_config, connection_timeout=6, test_without_hardware=False, loop=
 class CrDataHolder(CrDataHolderABC):
     __slots__ = ('cr_hardware', 'company', 'ofd', 'cash_register', 'online_cr')
 
-    def __init__(self, cr_hardware:CrHardware, company:Company, ofd:Ofd, cash_register:CashRegister, online_cr:OnlineCR):
+    def __init__(self, cr_hardware: CrHardware, company: Company, ofd: Ofd, cash_register: CashRegister,
+                 online_cr: OnlineCR):
         self.cr_hardware = cr_hardware
         self.company = company
         self.ofd = ofd
@@ -34,7 +35,7 @@ class CrDataHolder(CrDataHolderABC):
 
     def get_value_dict(self):
         if len(self._cache) > 0:
-            return self._cache[self]
+            return self._cache
         result = {}
         for attr_name in self.__slots__:
             attr = getattr(self, attr_name).get_value_dict()
