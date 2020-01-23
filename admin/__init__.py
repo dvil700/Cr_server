@@ -27,7 +27,7 @@ def init():
                          loader=jinja2.PackageLoader('admin', 'template')
                          )
 
-    app.router.add_static('/static/', '%s\\static\\' % pathlib.Path(__file__).parent, show_index=True,
+    app.router.add_static('/static/', '%s/static/' % pathlib.Path(__file__).parent, show_index=True,
                           append_version=True, name = 'static')
     app['static_root_url'] = '/static'
 
