@@ -30,7 +30,7 @@ class Operation(Base):
     client_operation_id = Column(Integer, nullable=False)
     client_operation_datetime = Column(TIMESTAMP, nullable=False)
     datetime_add = Column(TIMESTAMP, nullable=False)
-    datetime_modify = Column(TIMESTAMP, default=datetime.utcnow, nullable=False)
+    datetime_modify = Column(TIMESTAMP, nullable=False)
     state = Column(SAEnum(CommandStates), nullable=False)
     result = Column(Text)
     errors = Column(Text)
