@@ -45,6 +45,6 @@ if __name__ == '__main__':
         raise FileExistsError('Не найден файл конфигурации settings.env')
     load_dotenv(dotenv_path=env_path)
     engine = create_engine('{engine}://{user}:{password}@{host}:{port}/{db}'.format(engine = DB_ENGINE, **DB_CONFIG),
-                           charset = DB_CHARSET)
+                           connect_args={'charset': DB_CHARSET})
     create_tables(engine)
     create_supeuser(engine)
