@@ -121,7 +121,7 @@ class DecimalField(Numeric_field):
         return len(self._precision - 1)
 
 
-class StringField(Field):
+class StringField(SingleField):
     _type = str
     _wrong_type_message = 'Неверный тип поля. Значение должно быть строкой.'
 

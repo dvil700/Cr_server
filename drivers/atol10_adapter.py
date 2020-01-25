@@ -513,3 +513,4 @@ class AtlCashRegister(CashRegisterABC):
     @cr_coro
     def close(self):
         self.driver.close()
+        self.shift.closing_task.cancell()
