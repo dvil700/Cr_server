@@ -158,7 +158,7 @@ class AutoShift(Shift):
         # операции с кассой могут быть длительные (особенно, когда связанны с печатью),
         # поэтому необходимо начинать процедуру закрытия смены заблаговременно за shift_closing_delay секунд.
         self._active = True
-        if self.time_left <= self.closing_delay:
+        if self.time_left is not None and self.time_left <= self.closing_delay:
             await self.closing_task
 
     def open(self, seconds_to_close=None, start_time=None):
