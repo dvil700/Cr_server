@@ -73,7 +73,7 @@ async def rest_auth_middleware(request, handler):
         raise web.HTTPNotImplemented
 
     try:
-        user = await auth(data['login'], data['password'])
+        user = await auth(data['login'], data.pop('password', ''))
     except:
         raise authentication_failed_response()
 
