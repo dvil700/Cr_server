@@ -247,6 +247,8 @@ class AtlCashRegister(CashRegisterABC):
         self._setsinglesetting('Protocol', cr_protocol)
         self.driver.applySingleSettings()
         self.driver.open()
+        if not self.driver.isOpened():
+            raise RuntimeError('Невозможно подключиться к кассовому аппарату')
         super().__init__(shift_object, loop)
 
     def _close_shift(self, delay=0):
@@ -513,4 +515,5 @@ class AtlCashRegister(CashRegisterABC):
     @cr_coro
     def close(self):
         self.driver.close()
-        self.shift.closing_task.cancell()
+        if self.shift.closing_task:
+            self.shift.closing_task.cancell()
