@@ -508,9 +508,10 @@ class AtlCashRegister(CashRegisterABC):
         self._fnquerydata()
         return {'documentNumber': self._getparamint('LIBFPTR_PARAM_DOCUMENT_NUMBER'),
                 'receiptType': self._getparamint('LIBFPTR_PARAM_RECEIPT_TYPE'),
-                'receiptSum': self._getparamdouble('LIBFPTR_PARAM_RECEIPT_SUM'),
+                'documentType': self._getparamint('LIBFPTR_PARAM_FN_DOCUMENT_TYPE'),
+                'document_summ': self._getparamdouble('LIBFPTR_PARAM_RECEIPT_SUM'),
                 'fiscalSign': self._getparamstring('LIBFPTR_PARAM_FISCAL_SIGN'),
-                'dateTime': str(self._getparamdatetime('LIBFPTR_PARAM_DATE_TIME'))}
+                'documentDate': str(self._getparamdatetime('LIBFPTR_PARAM_DATE_TIME'))}
 
 
     @cr_coro
