@@ -354,12 +354,12 @@ class AtlCashRegister(CashRegisterABC):
         return self.driver.errorDescription()
 
     def _sort_by_payment_type(self, item):
-        return int(item['payment_type'])
+        return int(item['paymentType'])
 
     def _register_payments(self, payments):
         payments.sort(key=self._sort_by_payment_type, reverse=True)
         for payment in payments:
-            self._setparam('LIBFPTR_PARAM_PAYMENT_TYPE', payment['payment_type'])
+            self._setparam('LIBFPTR_PARAM_PAYMENT_TYPE', payment['paymentType'])
             self._setparam('LIBFPTR_PARAM_PAYMENT_SUM', float(payment['summ']))
             if self.driver.payment() < 0:
                 self._cancel_receipt()
@@ -506,11 +506,12 @@ class AtlCashRegister(CashRegisterABC):
 
         self._setparam('LIBFPTR_PARAM_FN_DATA_TYPE', 'LIBFPTR_FNDT_LAST_RECEIPT')
         self._fnquerydata()
-        result_data = {'documentNumber': self._getparamint('LIBFPTR_PARAM_DOCUMENT_NUMBER'),
-                       'receiptType': self._getparamint('LIBFPTR_PARAM_RECEIPT_TYPE'),
-                       'receiptSum': self._getparamdouble('LIBFPTR_PARAM_RECEIPT_SUM'),
-                       'fiscalSign': self._getparamstring('LIBFPTR_PARAM_FISCAL_SIGN'),
-                       'dateTime': str(self._getparamdatetime('LIBFPTR_PARAM_DATE_TIME'))}
+        return {'documentNumber': self._getparamint('LIBFPTR_PARAM_DOCUMENT_NUMBER'),
+                'receiptType': self._getparamint('LIBFPTR_PARAM_RECEIPT_TYPE'),
+                'receiptSum': self._getparamdouble('LIBFPTR_PARAM_RECEIPT_SUM'),
+                'fiscalSign': self._getparamstring('LIBFPTR_PARAM_FISCAL_SIGN'),
+                'dateTime': str(self._getparamdatetime('LIBFPTR_PARAM_DATE_TIME'))}
+
 
     @cr_coro
     def close(self):
