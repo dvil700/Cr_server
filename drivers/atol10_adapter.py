@@ -201,7 +201,7 @@ class TstCrAdapter(CashRegisterABC):
         # Разные операции могут выполняться разное время
         time.sleep(random.randint(0, 2))
 
-        return {'documentType': 3, 'documentNumber': self.doc_num, 'receiptType': 1, 'fiscalSign': 55566,
+        return {'documentNumber': self.doc_num, 'receiptType': 1, 'fiscalSign': 55566,
                 'documentDate': str(datetime.now()), 'document_summ': total}
 
     @cr_coro
