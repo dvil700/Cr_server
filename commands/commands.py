@@ -230,7 +230,7 @@ class FiscalOperation(Command):
 
     async def get_result_from_db(self):
         fd = FiscalDocument
-        sql = fd.query.oterjoin(Operation.id).with_entities(fd.documentType, fd.documentNumber, fd.receiptType,
+        sql = fd.query.oterjoin(Operation.id).with_entities(fd.documentNumber, fd.receiptType,
                                                             fd.fiscalSign, fd.fnSerialNumber, fd.documentDate,
                                                             fd.document_summ, Operation.errors).statement.apply_labels()
         data = await self.db_object.query(sql)
