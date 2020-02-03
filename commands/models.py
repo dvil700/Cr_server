@@ -173,7 +173,6 @@ class ReceiptType(Enum):
 
 class FiscalDocument(Base):
     operation_id = Column(Integer, ForeignKey('operation.id', ondelete='CASCADE'), nullable=False)
-    documentType = Column(SAEnum(DocumentTypes), nullable=False)
     documentNumber = Column(Integer, nullable=False)
     receiptType = Column(SAEnum(ReceiptType), nullable=False)
     fiscalSign = Column(String(20), nullable=False)
