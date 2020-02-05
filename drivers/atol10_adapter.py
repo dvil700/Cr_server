@@ -517,4 +517,4 @@ class AtlCashRegister(CashRegisterABC):
     def close(self):
         self.driver.close()
         if self.shift.closing_task:
-            self.shift.closing_task.cancell()
+            self.shift.closing_task.cancel()

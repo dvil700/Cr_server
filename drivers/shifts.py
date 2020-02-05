@@ -146,13 +146,18 @@ class AutoShift(Shift):
         # активация автоматической смены
         # получаем данные о смене из кассового аппарата:
         cr_state = await self.cash_register.get_shift_state()
-        if cr_state['value'] >= 1:
+        if cr_state['value'] == 1:
             # Если смена открыта, вычисляем время её начала
             self._start_time = time.monotonic() - (cr_state['now_dateTime'].timestamp() -
                                                    cr_state['start_dateTime'].timestamp())
             seconds_to_close = 0 if self.time_left < self.closing_delay else self.time_left - self.closing_delay
             self.open(seconds_to_close, self._start_time)
 
+        elif cr_state['value'] == 2:
+            # Если смена просрочена, то время открытия очень давнее (специфика именно того кассового аппарата, под
+            # который всё первоначально делалось в том, что если смена просрочена, время старта смены в самом аппарате
+            # достоверно не отображается)
+            self._start_time = 1
         else:
             self._start_time = None
         # операции с кассой могут быть длительные (особенно, когда связанны с печатью),
