@@ -164,6 +164,7 @@ class AutoShift(Shift):
         # поэтому необходимо начинать процедуру закрытия смены заблаговременно за shift_closing_delay секунд.
         self._active = True
         if self.time_left is not None and self.time_left <= self.closing_delay:
+            self._closing_task = self.closing_timer(0)
             await self.closing_task
 
     def open(self, seconds_to_close=None, start_time=None):
