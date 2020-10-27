@@ -1,4 +1,4 @@
-Online fiscal cash register server v 0.2 (beta).
+Online fiscal cash register server v 0.2 (alpha).
 
 The application provides REST API for receipt registrations, storing receipt information and a dash board for managing
 cash register hardware and an access control system.
