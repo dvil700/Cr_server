@@ -1,0 +1,47 @@
+
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Вход</title>
+
+
+    <!-- Bootstrap core CSS -->
+<link href="{{url('static', filename = '/bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+    <!-- Custom styles for this template -->
+    <link href="{{url('static', filename = '/bootstrap/css/signin.css')}}" rel="stylesheet">
+  </head>
+  <body class="text-center">
+    <form class="form-signin" method="post" action="{{url('login')}}">
+
+
+  {{request.csrf.csrf_token}}
+  {% for field in form %}
+        
+  {{field(class_='form-control')}}
+  {{field.label(class_='sr-only')}}
+{% endfor %}
+
+  <button class="btn btn-lg btn-primary btn-block" type="submit">Войти</button>
+</form>
+</body>
+</html>

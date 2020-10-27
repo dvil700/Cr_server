@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Jekyll v4.1.1">
+    <title>Offcanvas template · Bootstrap</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.5/examples/offcanvas/">
+
+    <!-- Bootstrap core CSS -->
+<link href="{{url('static', filename = '/bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+    <!-- Custom styles for this template -->
+    <link href="{{url('static', filename = 'offcanvas.css')}}" rel="stylesheet">
+  </head>
+
+  
+  <body class="bg-light">
+  <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
+
+  <div class="navbar-collapse offcanvas-collapse" id="navbarsExampleDefault">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="#">Кассовые сервисы <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Пользователи</a>
+      </li>
+
+  
+    </ul>
+
+  </div>
+</nav>
+
+
+
+<div class="modal fade" id="modal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button id='button-submit-service-group' type="button" class="btn btn-primary">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<main role="main" class="container">
+  <div class="d-flex align-items-center p-3 my-3 text-white-50 bg-purple rounded shadow-sm">
+
+    <div class="lh-100">
+      <h6 class="mb-0 text-white lh-100">Сервисы кассовых аппаратов</h6>
+
+    </div>
+  </div>
+  
+    <div class=" p-3 my-3 text-black-50 bg-light rounded shadow-sm">
+
+	    <div class="row">
+		     <div class="col-lg-1"> <strong>ID</strong></div>
+	         <div class="col-lg-2">
+                  <span><strong>Имя</strong></span>
+             </div>
+	         <div class="col-lg-2">Драйвер</div>
+			  <div class="col-lg-2">Статус</div>
+			  <div class="col-lg-5 text-right">
+          <button id='button-new-service-group' type="button" class="btn btn-primary">Добавить</button>
+			  
+			  
+			  </div>
+		</div>
+  </div>
+  {% for serv_group in service_groups %}
+  <div class="my-3 p-3 bg-white rounded shadow-sm">
+	    <div class="row">
+		     <div class="col-lg-1"> {{serv_group.id}} </div>
+	         <div class="col-lg-2">
+                  <span>{{serv_group.name}}</span>
+             </div>
+	         <div class="col-lg-2">{{serv_group.driver_name}}</div>
+			  <div class="col-lg-2 text-danger">{% if serv_group.is_running %} Включено {% else %} Выключено {% endif %}</div>
+			  <div class="col-lg-5 text-right">
+			      <button id='button_change_state_{{serv_group.id}}' type="button" class="btn {% if serv_group.is_running %}button-danger{% else %}btn-success{% endif %}">Пуск</button>
+
+
+			  </div>
+    </div>
+  
+    <div class="row">
+      <div class="col-lg-6">
+        <small class="d-block text-left mt-3">
+          <a id='delete_link_{{serv_group.id}}' class='delete text-danger' href="#">Удалить</a>
+       </small>
+      </div>
+      <div class="col-lg-6">
+	      <small class="d-block text-right mt-3">
+          <a id='settings_link_{{serv_group.id}}' class='settings' href="#">Настройки</a>
+        </small>
+        <small class="d-block text-right mt-0">
+          <a id='users_link_{{serv_group.id}}' class='users' href="#">Пользователи</a>
+        </small>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  
+  <script>
+    function showServiceGroupSettings(settings_link_id='new'){
+      let digits_re  = /[a-zA-z]+_(\d+)$/
+      let id_digits = settings_link_id != 'new'?digits_re.exec(settings_link_id)[1]:false;
+      let url = id_digits?"{{url('service_group_settings', service_group_id='')}}"+id_digits:"{{url('new_service_group')}}";
+
+      $.ajax({
+        url: url,             
+        dataType : "html",                     
+        success: function (data, textStatus) { 
+          $('#modal').modal('show');
+          document.querySelector('#modal').querySelector('.modal-body').innerHTML=data;
+          document.querySelector('#settings-driver-driver_name').addEventListener('change', function(event){
+            showDriverSettingsForm(event.target.value, id_digits)});
+        }
+      })
+    }
+
+    function showDriverSettingsForm(driver_name, service_group_id){
+      if (!driver_name){
+        document.querySelector('#driver-settings-form').innerHTML='';
+        return
+      }
+      let service_group_param = service_group_id?'?service_group_id='+service_group_id:'';
+      $.ajax({
+        url: 'http://127.0.0.1:8080/driver_forms/'+driver_name+service_group_param,             
+        dataType : "html",                     
+        success: function (data, textStatus) { 
+          $('#modal').modal('show');
+          document.querySelector('#driver-settings-form').innerHTML=data;
+        }
+      })
+
+    }
+
+    function saveGroupSettingsForm(){
+      let data = $('#service-group-settings-form').serialize();
+      $.ajax({
+                url: "{{url('post_service_group')}}",
+                method: "POST",
+                data: data,
+                    success: function(response){
+                       alert('response');
+
+                    },
+                    fail: function(response){
+                       alert('Произошла ошибка в процессе отправки. Попробуйте снова позже');
+                    }
+            });
+
+    }
+
+  
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.settings').forEach(function(element, i, nodelist){
+        element.addEventListener('click', function(){showServiceGroupSettings(element.id)});        
+      });
+
+      document.querySelector('#button-new-service-group').addEventListener('click', function(){ showServiceGroupSettings(); });        
+      document.querySelector('#button-submit-service-group').addEventListener('click', function(){saveGroupSettingsForm();});
+
+    }); 
+  
+  
+  </script>
+  
+  
+  
+  
+
+  
+
+
+</main>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+      <script>window.jQuery || document.write('<script src="../assets/js/vendor/jquery.slim.min.js"><\/script>')</script><script src="{{url('static', filename = '/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+        <script src="{{url('static', filename = 'offcanvas.js')}}"></script>
+  </body>
+     
+</html>

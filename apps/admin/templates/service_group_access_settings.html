@@ -1,0 +1,53 @@
+<html>
+<head></head>
+
+<body>
+<div class="container-fluid">
+  <input id='service-group-id-input' type='hidden' value="{{service_group_id}}"/>
+
+  <div class="row">    
+
+    <div class="col-lg-5"> Пользователи, не имеющие доступа: </div> 
+    <div class="col-lg-2"> </div> 
+    <div class="col-lg-5"> Пользователи, имеющие доступ: </div> 
+
+  </div>
+  <div class="row">    
+
+    <div class="col-lg-5"> 
+      <div style="height: 10em; overflow-y: scroll;" class="all-users-list list-group pr-2 border rounded">
+        {% for user in all_users%}
+          {% if user.id|string() not in resource_users %}
+            <a class="list-group-item list-group-item-action pt-0 pb-0" id="user-{{user.id}}" data-toggle="list" href="#">{{user.login}}</a>
+          {% else %}
+            {% set _ = resource_users.update({user.id|string(): user.login}) %} 
+
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div> 
+    <div class="col-lg-2"> 
+        <small class="d-block text-right mt-3"><button type="button" class="add-user-button btn btn-primary btn-sm"> > </button></small>
+        <small class="d-block text-right mt-3"><button type="button" class="remove-user-button btn btn-primary btn-sm"> < </button></small>
+      
+    </div> 
+
+    <div class="col-lg-5">  
+      <div class="added-users-list list-group">
+        {{request.csrf.csrf_token}}
+        {% for key, r_user in resource_users.items() %}
+           <a class="list-group-item list-group-item-action pt-0 pb-0" id="user-{{key}}" data-toggle="list" href="#">{{r_user}}</a>
+        {% endfor %}
+      </div>
+
+    </div>
+
+</div>
+
+ 
+
+</body>
+
+
+
+</html>

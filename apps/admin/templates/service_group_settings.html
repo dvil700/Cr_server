@@ -1,0 +1,32 @@
+<html>
+<head></head>
+
+<body>
+<div class="container-fluid">
+    <form id='service-group-settings-form'>
+        <div class="row">
+            {{request.csrf.csrf_token}}
+            {% for field in main_form %}
+                   <div class="col-lg-6"> 
+                       {% if field.widget.input_type != "hidden" %} {{field.label}} {% endif %}
+                   </div>
+                   <div class="col-lg-6"> {{field}} </div>
+            
+            {% endfor %}
+            </div>
+            
+        <div class="driver-settings-form row">
+            {% for field in device_config_form %}
+                <div class="col-lg-6"> {{field.label}}</div><div class="col-lg-6">{{field}}</div>
+            
+            {% endfor %}
+            
+        </div>
+    </form>
+</div>
+
+</body>
+
+
+
+</html>

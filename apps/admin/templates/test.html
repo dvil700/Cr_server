@@ -1,0 +1,237 @@
+<html>
+    <body>
+        <script>
+
+            function AbstractDeviceState() {
+                this.service_group =  null;
+                this.set_service_group = function(service_group){
+                    this.service_group = service_group;
+                }
+                this.run = function () { };
+                this.stop = function () { };
+                this.reboot = function() {};
+            }
+
+            function BaseDeviceState() {
+                AbstractDeviceState.call(this);
+                this._success = function (response) { }
+                this._fail = function (response) { };
+                this._request = function (state_name) {
+                    $.ajax({
+                        url: this.service_group.urls.get_device_change_state_url(),
+                        method: "POST",
+                        contentType: 'application/json',
+                        data: JSON.stringify({ 'state': state_name, 'csrf_token': this.service_group.get_csrf() }),
+                        success: function (response) {
+                            this.success(response);
+                        },
+                        fail: function (response) {
+                            this.fail(response);
+                        }
+                    });
+                }
+            }
+            BaseDeviceState.prototype = Object.create(AbstractDeviceState.prototype);
+  
+            function StoppedDeviceState() {
+                BaseDeviceState.call(this);
+                this._success = function (response) {
+                    this.service_group.set_device_state(new RunningDeviceState())
+                };
+                this._fail = function (response){ 
+
+                };
+                
+                this.run = function(){
+                    this._request('running');
+                };
+            
+            }
+            StoppedDeviceState.prototype = Object.create(BaseDeviceState.prototype);
+
+
+            function RunningDeviceState() {
+                BaseDeviceState.call(this);
+                this.is_rebooting = null;
+
+                this._success = function (response) {
+                    if (this.is_rebooting){
+                        this.is_rebooting = null;
+                        return;
+                    }
+                    this.service_group.set_device_state(new StoppedDeviceState());
+                };
+                this._fail = function (response){ 
+                    this.is_rebooting = null;
+                };
+                
+                this.stop = function () { 
+                    this._request('stopped');
+                };
+
+                this.reboot = function() {
+                    this.is_rebooting = true;
+                    this._request('reboot');
+                };
+            
+            }
+            RunningDeviceState.prototype = Object.create(BaseDeviceState.prototype);
+
+            function ModalWindowBuilder(){
+                
+                this.create = function(title, content){
+                    let modal = Object.assign(document.createElement('div'), {class:'modal fade', 'data-backdrop':"static", 'data-keyboard':"false", 
+                                                                              tabindex:"-1", 'aria-labelledby':"staticBackdropLabel",  "aria-hidden":"true"});
+                    let modal_dialog  = Object.assign(document.createElement('div'), {class: "modal-dialog"});
+                    let modal_content  = Object.assign(document.createElement('div'), {class: "modal-content"});
+                    let modal_header  = Object.assign(document.createElement('div'), {class: "modal-header"});
+                    let modal_title = Object.assign(document.createElement('div'), {class: "modal-title"});
+                    modal_title.innerHTML = '<h5 class="modal-title">'+title+'</h5>';
+
+                    let top_close_button =  Object.assign(document.createElement('button'), {class: "close", type: "button", "data-dismiss":"modal", 
+                                                                                             "aria-label":"Close"});
+                    top_close_button.innerHTML = '<span aria-hidden="true">&times;</span>';
+                    header.appendChild(modal_title);
+                    header.appendChild(top_close_button);
+                   
+                    let modal_body = Object.assign(document.createElement('div'), {class: "modal-body"});
+                    modal_body.innerHTML = content;
+                   
+                    let modal_footer = Object.assign(document.createElement('div'), {class: "modal-footer"});
+                    let bottom_close_button = Object.assign(document.createElement('button'), {class: "close", "data-dismiss":"modal", type: "button", 
+                                                                                              "aria-label":"Close"});
+                    let submit_button = Object.assign(document.createElement('button'), {class: "btn btn-primary", "data-dismiss":"modal", type: "button"});
+                    modal_footer.appendChild(bottom_close_button);
+                    modal_footer.appendChild(submit_button);
+
+                    modal.appendChild(modal_dialog).appendChild(modal_content).appendChild(modal_header);
+                    modal_content.appendChild(modal_body);
+                    modal_content.appendChild(modal_footer);
+                    return modal;
+                }
+
+            }
+
+            function url_dispatcher(app_name){
+                this.app_name = app_name;
+                this.get_settings_form_url = function(service_group=null){
+                    let url = '/'+this.app_name+'/service_groups/';
+                    url += (service_group)?service_group.id:'new';
+                    return url;
+                }
+                
+                this.get_driver_form_url(driver_name, service_group=null){
+                    let url= '/'+this.app_name+'/driver_forms/'
+                    url += driver_name + (service_group)?('service_group_id='+service_group.id):'';
+
+                }
+
+            }
+             
+            function SettingsFormManager(url_dispatcher, modal_window_builder){
+                this.url_dispatcher = url_dispatcher;
+                this.modal_window_builder = modal_window_builder;
+
+                this._save_success = function(modal, data, textStatus){
+                    modal.parentNode.removeChild(modal);
+                }
+
+                this._save_fail = function(modal){
+
+                }
+
+                this.save_data = function(modal, service_group=null){
+                    let data = $('#service-group-settings-form').serialize();
+                    $.ajax({url: url_dispatcher.get_settings_form_url(service_group), method: "POST", data: data, 
+                            success: function(data, textStatus){this._save_success(modal, data, textStatus)}, 
+                            fail: function(){this._save_fail(modal);}});
+                }
+
+
+                this._load_success = function(service_group, data, textStatus){
+                    let modal = this.modal_window_builder.create('', data);
+                    modal.querySelector('.btn-primary').addEventListner('click', function(){this.save_data(modal, service_group);})
+                    document.querySelector('#settings-driver-driver_name').addEventListener('change', function(event){
+                        this.load_driver_settings_form(service_group)
+                    });   
+                }
+                
+                this._load_fail = function(){
+
+                }
+
+                this.load = function(service_group=null){
+                    $.ajax({url: this.url_dispatcher.get_settings_form_url(service_group), dataType: 'html', 
+                            success: function(data, textStatus){this._load_success(service_group, data, textStatus)}, 
+                            fail: function(){this._load_fail();}});
+                }
+
+                this.load_driver_settings_form = function(service_group=null){
+                    driver_name = document.querySelector('#settings-driver-driver_name').value;
+                    if (!driver_name){
+                        document.querySelector('#driver-settings-form').innerHTML='';
+                        return;
+                    }
+                    $.ajax({url: this.url_dispatcher.get_driver_form_url(), dataType : "html",
+                        success: function (data, textStatus) { 
+                            document.querySelector('#driver-settings-form').innerHTML=data;
+                        }
+                    });
+
+                }}
+
+                
+        
+            function ServiceGroup(dom_element, csrf_object, settings_form_manager){
+                this.service_group_dom = dom_element;
+                this.id = trim(dom_element.getElementByName('service_group_id').textContent);
+                this.csrf_object = csrf_object;
+                this.device_state = null;
+                this.settings_form_manager = settings_form_manager;
+
+                this.set_device_state = function(device_state){
+                    this.device_state = device_state;
+                    this.device_state.set_service_group(this);
+                };
+                
+                this.get_csrf = function(){
+                    return this.csrf_object.get_csrf();
+                }
+                
+
+                this.device_run = function(){
+                    this.device_state.run();
+                };
+
+                this.device_stop = function(){
+                    this.device_state.stop();
+                }
+
+                this.device_reboot = function(){
+                    this.device_state.reboot();
+                }
+
+                
+
+                this.device_launched = function(){
+                    this.service_group_dom.querySelector('.button-change-device-state').classList.remove("btn-danger");
+                    this.service_group_dom.querySelector('.button-change-device-state').classList.add("btn-success");
+                }
+
+                this.device_stopped = function(){
+                    this.service_group_dom.querySelector('.button-change-device-state').classList.remove("btn-success");
+                    this.service_group_dom.querySelector('.button-change-device-state').classList.add("btn-danger");
+                }
+
+                this.show_settings(){
+                    this.settings_form_manager.load(this);
+
+                }
+
+            }
+
+
+        </script>
+
+    </body>
+</html>

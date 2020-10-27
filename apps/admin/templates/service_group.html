@@ -1,0 +1,108 @@
+{% extends 'list.html' %}
+
+
+{% block additional %}
+
+
+
+{% endblock %}
+
+
+{% block listblock %}
+<div class="d-flex align-items-center p-3 my-3 text-white-50 bg-purple rounded shadow-sm after-modal">
+
+    <div class="lh-100">
+      <h6 class="mb-0 text-white lh-100">Сервисы кассовых аппаратов</h6>
+
+    </div>
+  </div>
+  
+    <div class=" p-3 my-3 text-black-50 bg-light rounded shadow-sm">
+
+	    <div class="row">
+		     <div class="col-lg-1"> <strong>ID</strong></div>
+	         <div class="col-lg-2">
+                  <span><strong>Имя</strong></span>
+             </div>
+	         <div class="col-lg-2">Драйвер</div>
+			  <div class="col-lg-2">Статус</div>
+			  <div class="col-lg-5 text-right">
+          <button id='button-new-service-group' type="button" class="btn btn-primary">Добавить</button>
+			  
+			  
+			  </div>
+		</div>
+  </div>
+  {{request.csrf.csrf_token}}
+  {% for serv_group in service_groups %}
+  <div class="my-3 p-3 bg-white rounded shadow-sm service-group-container">
+	    <div class="row">
+		     <div class="col-lg-1 service-group-id"> {{serv_group.id}} </div>
+	         <div class="col-lg-2">
+                  <span>{{serv_group.name}}</span>
+             </div>
+	         <div class="col-lg-2">{{serv_group.driver_name}}</div>
+			  <div class="col-lg-2 device-state {% if serv_group.is_running %} text-success"> Включено {% else %} text-danger"> Выключено {% endif %}</div>
+			  <div class="col-lg-5 text-right">
+			      <button id='button_change_state_{{serv_group.id}}' type="button" class="btn button-change-device-state {% if serv_group.is_running %} btn-stop button-danger">Стоп
+              {% else %}btn-success btn-run">Пуск{% endif %}</button>
+
+
+			  </div>
+    </div>
+  
+    <div class="row">
+      <div class="col-lg-6">
+        <small class="d-block text-left mt-3">
+          <a id='delete_link_{{serv_group.id}}' class='delete text-danger' href="#">Удалить</a>
+       </small>
+      </div>
+      <div class="col-lg-6">
+	      <small class="d-block text-right mt-3">
+          <a id='settings_link_{{serv_group.id}}' class='settings' href="#">Настройки</a>
+        </small>
+        <small class="d-block text-right mt-0">
+          <a id='access_link_{{serv_group.id}}' class='access-settings' href="#">Настройки доступа</a>
+        </small>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+
+  <script src="{{url('static', filename = '/js/utils.js')}}"></script>
+  <script src="{{url('static', filename = '/js/modal.js')}}"></script>
+  <script src="{{url('static', filename = '/js/service_group.js')}}"></script>
+  
+  <script>
+
+
+    document.addEventListener('DOMContentLoaded', function(){
+      let csrf_object = new CsrfObject(document.querySelector('#csrf_token').value); // utils.js
+      let modal_builder = new ModalWindowBuilder(); // modal.js
+      let url_dispatcher = new UrlDispatcher('admin'); // service_group.js
+      let settings_form_manager = new SettingsFormManager(url_dispatcher, modal_builder); // service_group.js
+      let access_form_manager = new AccessFormManager(url_dispatcher, modal_builder); // service_group.js
+      let device_state_factory = new StateFactory(url_dispatcher); // service_group.js
+      let action_manager = new ServiceGroupActionManager(url_dispatcher); // service_group.js
+      let service_group_node_list = document.querySelectorAll('.service-group-container');
+      let service_groups = [];
+      for (let i=0; i<service_group_node_list.length; i++){
+        let service_group = new ServiceGroup(new ServiceGroupView(service_group_node_list[i]), csrf_object, 
+                                                                  settings_form_manager, access_form_manager, action_manager); // service_group.js
+
+        service_group.set_device_state(device_state_factory.get_state(service_group_node_list[i]));
+        service_groups.push(service_group);
+      }
+
+      let button_add_service_group = document.querySelector('#button-new-service-group');
+      button_add_service_group.addEventListener('click', {handleEvent:function(){this.form_manager.load()}, 'form_manager': settings_form_manager });
+    }); 
+  
+  
+  </script>
+
+
+
+
+{% endblock %}

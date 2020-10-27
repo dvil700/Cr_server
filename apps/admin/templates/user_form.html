@@ -1,0 +1,35 @@
+<html>
+<head></head>
+
+<body>
+<div class="container-fluid">
+    <form id='user-settings-form'>
+        <div class="row">
+            {{request.csrf.csrf_token}}
+            {% for field in user_form %}
+                   <div class="col-lg-6"> 
+                       {% if field.widget.input_type != "hidden" %} {{field.label}} {% endif %}
+                   </div>
+                   <div class="col-lg-6"> {{field}} </div>
+            
+            {% endfor %}
+            </div>
+        <div class="row mt-3">   
+            <div class="col-lg-12">Права доступа в панель администратора:</div> 
+        </div>
+        
+        {% for field in permissions_form %}
+    
+        <div class="form-check form-check-inline">
+            {{field}}
+            {{field.label}}
+          </div>
+        {% endfor %}
+    </form>
+</div>
+
+</body>
+
+
+
+</html>

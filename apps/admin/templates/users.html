@@ -1,0 +1,87 @@
+{% extends 'list.html' %}
+
+{% block listblock %}
+<div class="d-flex align-items-center p-3 my-3 text-white-50 bg-purple rounded shadow-sm">
+
+    <div class="lh-100">
+      <h6 class="mb-0 text-white lh-100">Сервисы кассовых аппаратов</h6>
+
+    </div>
+  </div>
+  
+
+
+    <div class="p-3 my-3 text-black-50 bg-light rounded shadow-sm">
+
+	    <div class="row">
+		     <div class="col-lg-1"> <strong>ID</strong></div>
+	         <div class="col-lg-2"> <span><strong>Логин</strong></span>  </div>
+            <div class="col-lg-2">
+              <span><strong>Email</strong></span>
+            </div>
+	         <div class="col-lg-1">Статус</div>
+        <div class="col-lg-2"> Дополнительная информация</div>
+        <div class="col-lg-2"> Доступ в админ панель</div>
+			  <div class="col-lg-2 text-right">
+          <button id='button-new-user' type="button" class="btn btn-primary">Добавить</button>
+			  
+			  
+			  </div>
+		</div>
+  </div>
+  {{request.csrf.csrf_token}}
+  {% for user in users %}
+  <div class="my-3 p-3 bg-white rounded shadow-sm user-container">
+	    <div class="row">
+		     <div class="col-lg-1 user-id"> {{user.id}} </div>
+	         <div class="col-lg-2">
+                  <span>{{user.login}}</span>
+             </div>
+             <div class="col-lg-2">{{user.email}}</div>
+             <div class="col-lg-1">{% if user._is_active %} Активный {% else %} Неактивный {% endif %}</div>
+             <div class="col-lg-2">{% if user.info %} {{user.info}} {% endif %}</div>
+             <div class="col-lg-2">{% if user.id|string() in admins %} Есть {% endif %} </div>
+			  <div class="col-lg-2 text-right">        
+          <small class="d-block text-right mt-3">
+            <a id='сhange_link_{{user.id}}' class='settings' href="#">Изменить</a>
+          </small>
+          <small class="d-block text-right mt-0">
+            <a id='delete_link_{{user.id}}' class='delete' href="#">Удалить</a>
+          </small>
+       </div>
+    </div>
+  
+  </div>
+  {% endfor %}
+
+  <script src="{{url('static', filename = '/js/utils.js')}}"></script>
+  <script src="{{url('static', filename = '/js/modal.js')}}"></script>
+  <script src="{{url('static', filename = '/js/user.js')}}"></script>
+  
+  <script>
+
+
+  
+    document.addEventListener('DOMContentLoaded', function(){
+      let csrf_object = new CsrfObject(document.querySelector('#csrf_token').value); // utils.js
+      let modal_builder = new ModalWindowBuilder(); // modal.js
+      let url_dispatcher = new UserUrlDispatcher('admin'); // user.js
+      let user_form_manager = new UserSettingsFormManager(url_dispatcher, modal_builder); // user.js
+      let action_manager = new UserActionManager(url_dispatcher); // user.js
+      let users_node_list = document.querySelectorAll('.user-container');
+      let users = [];
+      for (let i=0; i<users_node_list.length; i++){
+        users.push(new User(new UserView(users_node_list[i]), csrf_object, user_form_manager, action_manager)); // user.js
+      }
+
+      let button_add_user = document.querySelector('#button-new-user');
+      button_add_user.addEventListener('click', {handleEvent:function(){this.form_manager.load()}, 'form_manager': user_form_manager });
+    }); 
+  
+
+  </script>
+
+
+
+
+{% endblock %}
